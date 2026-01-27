@@ -26,6 +26,7 @@ import { seoService } from '@/services/seoService';
 import { BlogPost } from '@/types/blog';
 import { toast } from 'sonner';
 import '@/styles/blog-article.css';
+import AnalyticsTracker from '@/components/AnalyticsTracker';
 
 const BlogArticle = () => {
     const { slug } = useParams<{ slug: string }>();
@@ -360,6 +361,7 @@ const BlogArticle = () => {
                                     disabled={liked}
                                     className={`gap-2 ${liked ? 'like-button-active' : ''}`}
                                     size="lg"
+                                    data-analytics-like
                                 >
                                     <Heart className={`h-5 w-5 ${liked ? 'fill-current' : ''}`} />
                                     {liked ? 'Curtido!' : 'Curtir Artigo'}
@@ -372,6 +374,8 @@ const BlogArticle = () => {
                                         size="icon"
                                         onClick={() => handleShare('facebook')}
                                         className="share-button hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600"
+                                        data-analytics-share
+                                        data-platform="facebook"
                                     >
                                         <Facebook className="h-4 w-4" />
                                     </Button>
@@ -380,6 +384,8 @@ const BlogArticle = () => {
                                         size="icon"
                                         onClick={() => handleShare('twitter')}
                                         className="share-button hover:bg-sky-50 hover:text-sky-600 hover:border-sky-600"
+                                        data-analytics-share
+                                        data-platform="twitter"
                                     >
                                         <Twitter className="h-4 w-4" />
                                     </Button>
@@ -388,6 +394,8 @@ const BlogArticle = () => {
                                         size="icon"
                                         onClick={() => handleShare('linkedin')}
                                         className="share-button hover:bg-blue-50 hover:text-blue-700 hover:border-blue-700"
+                                        data-analytics-share
+                                        data-platform="linkedin"
                                     >
                                         <Linkedin className="h-4 w-4" />
                                     </Button>
@@ -396,6 +404,8 @@ const BlogArticle = () => {
                                         size="icon"
                                         onClick={() => handleShare('email')}
                                         className="share-button hover:bg-slate-50 hover:text-slate-700 hover:border-slate-700"
+                                        data-analytics-share
+                                        data-platform="email"
                                     >
                                         <Mail className="h-4 w-4" />
                                     </Button>
@@ -449,6 +459,16 @@ const BlogArticle = () => {
             </div>
 
             <Footer />
+            
+            {/* Analytics Tracker */}
+            {post && (
+                <AnalyticsTracker 
+                    postId={post.id}
+                    trackEngagement={true}
+                    trackScrollDepth={true}
+                    trackTimeOnPage={true}
+                />
+            )}
         </>
     );
 };

@@ -16,6 +16,9 @@ import BlogSEO from "./pages/BlogSEO";
 import AdminLogin from "./pages/AdminLogin";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
+import NewsletterAdmin from "./pages/NewsletterAdmin";
+import CreateNewsletter from "./pages/CreateNewsletter";
+import CreateArticle from "./pages/CreateArticle";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +56,33 @@ const App = () => (
             <Route path="/admin/blog/:id" element={
               <ProtectedRoute>
                 <BlogEditor />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/blog/novo" element={
+              <ProtectedRoute>
+                <CreateArticle />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/blog/editar/:id" element={
+              <ProtectedRoute>
+                <CreateArticle />
+              </ProtectedRoute>
+            } />
+
+            {/* Newsletter Admin Routes */}
+            <Route path="/admin/newsletter" element={
+              <ProtectedRoute>
+                <NewsletterAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/newsletter/criar" element={
+              <ProtectedRoute>
+                <CreateNewsletter />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/newsletter/editar/:id" element={
+              <ProtectedRoute>
+                <CreateNewsletter />
               </ProtectedRoute>
             } />
 

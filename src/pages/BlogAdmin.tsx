@@ -48,6 +48,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import BlogAnalytics from '@/components/BlogAnalytics';
 import { blogService } from '@/services/blogService';
 import { newsletterService } from '@/services/newsletterService';
 import { authService } from '@/lib/supabase';
@@ -505,16 +506,29 @@ const BlogAdmin = () => {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-center py-12">
-                                        <Mail className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                                        <p className="text-slate-600 mb-4">
-                                            Funcionalidade de newsletter em desenvolvimento
-                                        </p>
-                                        <Link to="/admin/newsletter">
-                                            <Button>
-                                                Acessar Newsletter
-                                            </Button>
-                                        </Link>
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <Link to="/admin/newsletter">
+                                                <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                                                    <Mail className="h-6 w-6" />
+                                                    <span>Gerenciar Newsletter</span>
+                                                </Button>
+                                            </Link>
+                                            <Link to="/admin/newsletter/criar">
+                                                <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                                                    <Plus className="h-6 w-6" />
+                                                    <span>Criar Newsletter</span>
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                        <div className="text-center pt-4">
+                                            <Link to="/admin/newsletter">
+                                                <Button>
+                                                    <Mail className="h-4 w-4 mr-2" />
+                                                    Acessar Newsletter
+                                                </Button>
+                                            </Link>
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -522,22 +536,7 @@ const BlogAdmin = () => {
 
                         {/* Analytics Tab */}
                         <TabsContent value="analytics" className="space-y-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Analytics Detalhado</CardTitle>
-                                    <CardDescription>
-                                        Métricas e insights do blog
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-center py-12">
-                                        <TrendingUp className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                                        <p className="text-slate-600 mb-4">
-                                            Analytics detalhado em desenvolvimento
-                                        </p>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <BlogAnalytics />
                         </TabsContent>
                     </Tabs>
                 </div>

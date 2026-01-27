@@ -99,16 +99,56 @@ export interface NewsletterSubscriber {
 export interface Newsletter {
   id: string;
   subject: string;
+  previewText?: string;
   content: string;
   htmlContent: string;
-  status: 'draft' | 'scheduled' | 'sent';
+  status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed';
   scheduledFor?: string;
   sentAt?: string;
   recipients: number;
   opens: number;
   clicks: number;
+  unsubscribes: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface NewsletterCampaign {
+  id: string;
+  subject: string;
+  previewText: string;
+  content: string;
+  status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed';
+  sentAt?: string;
+  scheduledAt?: string;
+  recipientCount: number;
+  openedCount: number;
+  clickedCount: number;
+  unsubscribedCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CampaignTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  content: string;
+  previewText: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CampaignAnalytics {
+  totalSent: number;
+  totalOpened: number;
+  totalClicked: number;
+  totalUnsubscribed: number;
+  openRate: number;
+  clickRate: number;
+  unsubscribeRate: number;
+  campaigns: NewsletterCampaign[];
 }
 
 export interface BlogComment {
