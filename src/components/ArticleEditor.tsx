@@ -115,14 +115,38 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
     const tags = watch('tags') || [];
     const seoKeywords = watch('seoKeywords') || [];
 
+    const loadArticle = useCallback(async () => {
+        try {
+            const article = await blogService.getPost(articleId!);
+            if (article) {
+                reset({
+                    title: article.title,
+                    slug: article.slug,
+                    excerpt: article.excerpt,
+                    content: article.content,
+                    category: article.category,
+                    tags: article.tags,
+                    seoTitle: article.seoTitle,
+                    seoDescription: article.seoDescription,
+                    seoKeywords: article.seoKeywords || [],
+                    featured: article.featured,
+                    status: article.status
+                });
+                setFeaturedImage(article.featuredImage || '');
+            }
+        } catch (error) {
+            console.error('Error loading article:', error);
+        }
+    }, [articleId, reset]);
+
     useEffect(() => {
         loadCategories();
         loadTagSuggestions();
-        
+
         if (articleId) {
             loadArticle();
         }
-    }, [articleId, loadArticle]); // Added loadArticle to dependencies
+    }, [articleId, loadArticle]);
 
     useEffect(() => {
         // Generate slug from title
@@ -176,29 +200,6 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
         }
     };
 
-    const loadArticle = useCallback(async () => {
-        try {
-            const article = await blogService.getPost(articleId!);
-            if (article) {
-                reset({
-                    title: article.title,
-                    slug: article.slug,
-                    excerpt: article.excerpt,
-                    content: article.content,
-                    category: article.category,
-                    tags: article.tags,
-                    seoTitle: article.seoTitle,
-                    seoDescription: article.seoDescription,
-                    seoKeywords: article.seoKeywords || [],
-                    featured: article.featured,
-                    status: article.status
-                });
-                setFeaturedImage(article.featuredImage || '');
-            }
-        } catch (error) {
-            console.error('Error loading article:', error);
-        }
-    }, [articleId, reset]);
 
     const insertText = (text: string, tag?: string) => {
         const textarea = document.querySelector('textarea[name="content"]') as HTMLTextAreaElement;
@@ -207,9 +208,9 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const selectedText = content.substring(start, end);
-        
+
         let newText = '';
-        
+
         if (tag) {
             switch (tag) {
                 case 'bold':
@@ -248,7 +249,7 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
 
         const newContent = content.substring(0, start) + newText + content.substring(end);
         setValue('content', newContent);
-        
+
         // Focus back to textarea
         setTimeout(() => {
             textarea.focus();
@@ -292,7 +293,7 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
     const handleSave = async (data: ArticleFormData) => {
         try {
             setSaving(true);
-            
+
             const articleData = {
                 ...data,
                 featuredImage,
@@ -301,7 +302,7 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
             };
 
             let savedArticle: BlogPost;
-            
+
             if (articleId) {
                 savedArticle = await blogService.updatePost(articleId, articleData);
                 toast.success('Artigo salvo com sucesso!');
@@ -309,7 +310,7 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
                 savedArticle = await blogService.createPost(articleData);
                 toast.success('Artigo criado com sucesso!');
             }
-            
+
             onSave?.(savedArticle);
         } catch (error) {
             console.error('Error saving article:', error);
@@ -322,7 +323,7 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
     const handlePublish = async (data: ArticleFormData) => {
         try {
             setPublishing(true);
-            
+
             const articleData = {
                 ...data,
                 featuredImage,
@@ -333,7 +334,7 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
             };
 
             let publishedArticle: BlogPost;
-            
+
             if (articleId) {
                 publishedArticle = await blogService.updatePost(articleId, articleData);
             } else {
@@ -347,7 +348,7 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
             } else {
                 toast.success('Artigo publicado com sucesso!');
             }
-            
+
             onPublish?.(publishedArticle);
         } catch (error) {
             console.error('Error publishing article:', error);
@@ -509,7 +510,7 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
                                     <Plus className="h-4 w-4" />
                                 </Button>
                             </div>
-                            
+
                             {/* Tag Suggestions */}
                             {tagSuggestions.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
@@ -526,7 +527,7 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
                                     ))}
                                 </div>
                             )}
-                            
+
                             {/* Selected Tags */}
                             <div className="flex flex-wrap gap-2">
                                 {tags.map((tag) => (
@@ -583,7 +584,7 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
                                     onCheckedChange={setIsScheduled}
                                 />
                             </div>
-                            
+
                             {isScheduled && (
                                 <div className="space-y-2">
                                     <Input
@@ -804,7 +805,7 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
                                             <Plus className="h-4 w-4" />
                                         </Button>
                                     </div>
-                                    
+
                                     <div className="flex flex-wrap gap-2">
                                         {seoKeywords.map((keyword) => (
                                             <Badge key={keyword} variant="outline" className="gap-1">

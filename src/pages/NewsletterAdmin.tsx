@@ -66,6 +66,7 @@ import { newsletterService } from '@/services/newsletterService';
 import { authService } from '@/lib/supabase';
 import { NewsletterSubscriber } from '@/types/blog';
 import { toast } from 'sonner';
+import NewsletterAnalytics from '@/components/NewsletterAnalytics';
 
 const NewsletterAdmin = () => {
     const navigate = useNavigate();
@@ -139,10 +140,10 @@ const NewsletterAdmin = () => {
 
         try {
             setSending(true);
-            
+
             // Simulate sending newsletter
             await new Promise(resolve => setTimeout(resolve, 2000));
-            
+
             toast.success('Newsletter enviada com sucesso!');
             setShowCreateDialog(false);
             setNewNewsletter({ subject: '', content: '', previewText: '' });
@@ -157,10 +158,10 @@ const NewsletterAdmin = () => {
     const handleExportSubscribers = async (format: 'csv' | 'json') => {
         try {
             const data = await newsletterService.exportSubscribers(format);
-            
+
             // Create download link
-            const blob = new Blob([data], { 
-                type: format === 'json' ? 'application/json' : 'text/csv' 
+            const blob = new Blob([data], {
+                type: format === 'json' ? 'application/json' : 'text/csv'
             });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -170,7 +171,7 @@ const NewsletterAdmin = () => {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
+
             toast.success(`Lista exportada como ${format.toUpperCase()}`);
         } catch (error) {
             console.error('Error exporting:', error);
@@ -315,8 +316,8 @@ const NewsletterAdmin = () => {
                                                 />
                                             </div>
                                             <div className="flex gap-2 pt-4">
-                                                <Button 
-                                                    onClick={handleSendNewsletter} 
+                                                <Button
+                                                    onClick={handleSendNewsletter}
                                                     disabled={sending}
                                                     className="flex-1"
                                                 >
@@ -332,8 +333,8 @@ const NewsletterAdmin = () => {
                                                         </>
                                                     )}
                                                 </Button>
-                                                <Button 
-                                                    variant="outline" 
+                                                <Button
+                                                    variant="outline"
                                                     onClick={() => setShowCreateDialog(false)}
                                                 >
                                                     Cancelar
@@ -450,24 +451,24 @@ const NewsletterAdmin = () => {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <Button 
-                                            variant="outline" 
+                                        <Button
+                                            variant="outline"
                                             className="h-20 flex-col gap-2"
                                             onClick={() => setShowCreateDialog(true)}
                                         >
                                             <Mail className="h-6 w-6" />
                                             <span>Enviar Newsletter</span>
                                         </Button>
-                                        <Button 
-                                            variant="outline" 
+                                        <Button
+                                            variant="outline"
                                             className="h-20 flex-col gap-2"
                                             onClick={() => handleExportSubscribers('csv')}
                                         >
                                             <Download className="h-6 w-6" />
                                             <span>Exportar CSV</span>
                                         </Button>
-                                        <Button 
-                                            variant="outline" 
+                                        <Button
+                                            variant="outline"
                                             className="h-20 flex-col gap-2"
                                             onClick={() => navigate('/admin/blog')}
                                         >
@@ -631,25 +632,7 @@ const NewsletterAdmin = () => {
 
                         {/* Analytics Tab */}
                         <TabsContent value="analytics" className="space-y-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Analytics da Newsletter</CardTitle>
-                                    <CardDescription>
-                                        Métricas detalhadas de engajamento
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-center py-12">
-                                        <BarChart3 className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                                        <p className="text-slate-600 mb-4">
-                                            Analytics em desenvolvimento
-                                        </p>
-                                        <p className="text-sm text-slate-500">
-                                            Em breve: taxas de abertura, cliques, conversões e mais
-                                        </p>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <NewsletterAnalytics subscriberCount={stats?.total || 0} />
                         </TabsContent>
                     </Tabs>
                 </div>

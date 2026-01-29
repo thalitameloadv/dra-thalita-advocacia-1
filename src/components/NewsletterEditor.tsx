@@ -19,11 +19,11 @@ import {
     Undo,
     Redo,
     HelpCircle,
-    Template,
     Calendar,
     Clock,
     Users,
-    BarChart3
+    BarChart3,
+    Layout
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -95,7 +95,7 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
     useEffect(() => {
         loadTemplates();
         loadStats();
-        
+
         if (campaignId) {
             loadCampaign();
         }
@@ -148,9 +148,9 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const selectedText = content.substring(start, end);
-        
+
         let newText = '';
-        
+
         if (tag) {
             switch (tag) {
                 case 'bold':
@@ -183,7 +183,7 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
 
         const newContent = content.substring(0, start) + newText + content.substring(end);
         setValue('content', newContent);
-        
+
         // Focus back to textarea
         setTimeout(() => {
             textarea.focus();
@@ -194,7 +194,7 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
     const generatePreview = async () => {
         const subject = watch('subject');
         const newsletterContent = watch('content');
-        
+
         try {
             const preview = await newsletterCampaignService.generatePreview(subject, newsletterContent);
             return preview;
@@ -207,7 +207,7 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
     const handleSave = async (data: NewsletterFormData) => {
         try {
             setSaving(true);
-            
+
             if (campaignId) {
                 const updated = await newsletterCampaignService.updateCampaign(campaignId, {
                     subject: data.subject,
@@ -238,9 +238,9 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
     const handleSend = async (data: NewsletterFormData) => {
         try {
             setSending(true);
-            
+
             let campaignIdToSend = campaignId;
-            
+
             if (!campaignIdToSend) {
                 const created = await newsletterCampaignService.createCampaign({
                     subject: data.subject,
@@ -259,7 +259,7 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
                 await newsletterCampaignService.sendCampaign(campaignIdToSend);
                 toast.success('Newsletter enviada com sucesso!');
             }
-            
+
             onSend?.({ id: campaignIdToSend });
         } catch (error) {
             console.error('Error sending newsletter:', error);
@@ -318,7 +318,7 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-lg flex items-center gap-2">
-                                <Template className="h-5 w-5" />
+                                <Layout className="h-5 w-5" />
                                 Templates
                             </CardTitle>
                         </CardHeader>
