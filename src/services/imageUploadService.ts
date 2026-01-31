@@ -27,7 +27,7 @@ class ImageUploadService {
   };
 
   async uploadImage(
-    file: File, 
+    file: File,
     options: ImageUploadOptions = {}
   ): Promise<UploadedImage> {
     const opts = { ...this.defaultOptions, ...options };
@@ -39,7 +39,7 @@ class ImageUploadService {
       // Gerar nome único
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `${opts.bucket}/${fileName}`;
+      const filePath = `${fileName}`;
 
       // Upload para Supabase Storage
       const { data, error } = await supabase.storage
@@ -62,8 +62,9 @@ class ImageUploadService {
         thumbnailUrl = await this.generateThumbnail(filePath, opts.bucket!);
       }
 
-      // Salvar metadados no banco
-      const imageData: Partial<UploadedImage> = {
+      // Criar objeto de imagem
+      const imageData: UploadedImage = {
+        id: data.path,
         name: file.name,
         url: publicUrl,
         size: file.size,
@@ -73,15 +74,31 @@ class ImageUploadService {
         created_at: new Date().toISOString()
       };
 
-      const { data: savedImage, error: saveError } = await supabase
-        .from('uploaded_images')
-        .insert(imageData)
-        .select()
-        .single();
+      // Tentar salvar metadados no banco (opcional)
+      try {
+        const { data: savedImage, error: saveError } = await supabase
+          .from('uploaded_images')
+          .insert({
+            name: imageData.name,
+            url: imageData.url,
+            size: imageData.size,
+            type: imageData.type,
+            bucket: imageData.bucket,
+            path: imageData.path,
+            created_at: imageData.created_at
+          })
+          .select()
+          .single();
 
-      if (saveError) throw saveError;
+        if (!saveError && savedImage) {
+          return savedImage;
+        }
+      } catch (dbError) {
+        console.warn('Could not save image metadata to database:', dbError);
+        // Continua mesmo se falhar ao salvar no banco
+      }
 
-      return savedImage;
+      return imageData;
 
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -90,7 +107,7 @@ class ImageUploadService {
   }
 
   async uploadMultipleImages(
-    files: File[], 
+    files: File[],
     options: ImageUploadOptions = {}
   ): Promise<UploadedImage[]> {
     const uploadPromises = files.map(file => this.uploadImage(file, options));
@@ -138,7 +155,7 @@ class ImageUploadService {
   }
 
   async getUploadedImages(
-    bucket?: string, 
+    bucket?: string,
     limit: number = 50
   ): Promise<UploadedImage[]> {
     try {

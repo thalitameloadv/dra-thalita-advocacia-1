@@ -12,7 +12,6 @@ import CalculadoraRescisao from "./pages/CalculadoraRescisao";
 import BlogEnhanced from "./pages/BlogEnhanced";
 import BlogArticleEnhanced from "./pages/BlogArticleEnhanced";
 import BlogAdmin from "./pages/BlogAdmin";
-import BlogEditor from "./pages/BlogEditor";
 import BlogSEO from "./pages/BlogSEO";
 import AdminLogin from "./pages/AdminLogin";
 import AdminResetPassword from "./pages/AdminResetPassword";
@@ -49,44 +48,51 @@ const App = () => {
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin/reset-password" element={<AdminResetPassword />} />
 
-                {/* Protected Admin Routes */}
+                {/* Protected Admin Routes - Blog */}
+                {/* Dashboard principal do blog */}
                 <Route path="/admin/blog" element={
                   <ProtectedRoute>
                     <BlogAdmin />
                   </ProtectedRoute>
                 } />
+
+                {/* Configurações de SEO */}
                 <Route path="/admin/blog/seo" element={
                   <ProtectedRoute>
                     <BlogSEO />
                   </ProtectedRoute>
                 } />
-                <Route path="/admin/blog/:id" element={
-                  <ProtectedRoute>
-                    <BlogEditor />
-                  </ProtectedRoute>
-                } />
+
+                {/* Criar novo artigo - DEVE vir antes de rotas com parâmetros */}
                 <Route path="/admin/blog/novo" element={
                   <ProtectedRoute>
                     <CreateArticleDirect />
                   </ProtectedRoute>
                 } />
+
+                {/* Editar artigo existente */}
                 <Route path="/admin/blog/editar/:id" element={
                   <ProtectedRoute>
                     <CreateArticleDirect />
                   </ProtectedRoute>
                 } />
 
-                {/* Newsletter Admin Routes */}
+                {/* Protected Admin Routes - Newsletter */}
+                {/* Dashboard de gerenciamento de newsletter */}
                 <Route path="/admin/newsletter" element={
                   <ProtectedRoute>
                     <NewsletterAdminEnhanced />
                   </ProtectedRoute>
                 } />
+
+                {/* Criar nova newsletter */}
                 <Route path="/admin/newsletter/criar" element={
                   <ProtectedRoute>
                     <CreateNewsletter />
                   </ProtectedRoute>
                 } />
+
+                {/* Editar newsletter existente */}
                 <Route path="/admin/newsletter/editar/:id" element={
                   <ProtectedRoute>
                     <CreateNewsletter />

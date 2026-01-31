@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -60,7 +60,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     if (!files || files.length === 0 || disabled) return;
 
     const fileArray = Array.from(files);
-    
+
     // Validar arquivos
     for (const file of fileArray) {
       if (file.size > maxSize) {
@@ -79,13 +79,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         progress: 0,
         status: 'uploading'
       };
-      
+
       setUploadProgress(prev => [...prev, progressItem]);
 
       try {
         // Otimizar imagem
         const optimizedFile = await imageUploadService.optimizeImage(file);
-        
+
         // Fazer upload
         const uploadedImage = await imageUploadService.uploadImage(optimizedFile, {
           bucket,
@@ -94,9 +94,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         });
 
         // Atualizar progresso
-        setUploadProgress(prev => 
-          prev.map(item => 
-            item.file === file 
+        setUploadProgress(prev =>
+          prev.map(item =>
+            item.file === file
               ? { ...item, progress: 100, status: 'success' }
               : item
           )
@@ -104,12 +104,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
         // Notificar sucesso
         toast.success(`Imagem ${file.name} enviada com sucesso`);
-        
+
         // Atualizar valor
         if (onChange) {
           onChange(uploadedImage.url);
         }
-        
+
         if (onImageSelect) {
           onImageSelect(uploadedImage);
         }
@@ -121,10 +121,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
       } catch (error) {
         console.error('Upload error:', error);
-        
-        setUploadProgress(prev => 
-          prev.map(item => 
-            item.file === file 
+
+        setUploadProgress(prev =>
+          prev.map(item =>
+            item.file === file
               ? { ...item, status: 'error', error: 'Falha no upload' }
               : item
           )
@@ -150,7 +150,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     if (!disabled) {
       handleFileSelect(e.dataTransfer.files);
     }
@@ -162,7 +162,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
   const loadGallery = useCallback(async () => {
     if (!showGallery) return;
-    
+
     setGalleryLoading(true);
     try {
       const images = await imageUploadService.getUploadedImages(bucket, 20);
@@ -179,11 +179,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     if (onChange) {
       onChange(image.url);
     }
-    
+
     if (onImageSelect) {
       onImageSelect(image);
     }
-    
+
     setShowGalleryModal(false);
     toast.success('Imagem selecionada da galeria');
   }, [onChange, onImageSelect]);
@@ -198,12 +198,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Upload Area */}
-      <Card 
-        className={`border-2 border-dashed transition-colors ${
-          isDragging 
-            ? 'border-blue-500 bg-blue-50' 
-            : 'border-gray-300 hover:border-gray-400'
-        } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+      <Card
+        className={`border-2 border-dashed transition-colors ${isDragging
+          ? 'border-blue-500 bg-blue-50'
+          : 'border-gray-300 hover:border-gray-400'
+          } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -214,7 +213,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
               <Upload className="w-6 h-6 text-gray-400" />
             </div>
-            
+
             <div>
               <p className="text-sm font-medium text-gray-900">
                 {placeholder}
@@ -280,7 +279,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                 )}
               </div>
             </div>
-            
+
             {progress.status === 'uploading' && (
               <Progress value={progress.progress} className="h-2" />
             )}
@@ -294,12 +293,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           <CardContent className="p-4">
             <div className="space-y-4">
               <div className={`relative ${aspectRatioClasses[aspectRatio]} bg-gray-100 rounded-lg overflow-hidden`}>
-                <img 
-                  src={value} 
-                  alt="Preview" 
+                <img
+                  src={value}
+                  alt="Preview"
                   className="w-full h-full object-cover"
                 />
-                
+
                 <div className="absolute top-2 right-2">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -319,7 +318,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                   </Tooltip>
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <Badge variant="secondary">Imagem selecionada</Badge>
                 <Button
@@ -342,18 +341,20 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       {showGalleryModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <Card className="max-w-4xl w-full max-h-[80vh] overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <h3 className="text-lg font-semibold">Galeria de Imagens</h3>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowGalleryModal(false)}
-              >
-                <X className="w-4 h-4" />
-              </Button>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Galeria de Imagens</CardTitle>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowGalleryModal(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
             </CardHeader>
-            
+
             <CardContent className="overflow-y-auto">
               {galleryLoading ? (
                 <div className="flex items-center justify-center py-8">
@@ -374,8 +375,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                     >
                       <CardContent className="p-2">
                         <div className={`relative ${aspectRatioClasses[aspectRatio]} bg-gray-100 rounded overflow-hidden mb-2`}>
-                          <img 
-                            src={image.url} 
+                          <img
+                            src={image.url}
                             alt={image.name}
                             className="w-full h-full object-cover"
                           />
