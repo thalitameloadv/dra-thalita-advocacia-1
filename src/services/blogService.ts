@@ -11,6 +11,11 @@ class BlogService {
         limit?: number;
         offset?: number;
     }): Promise<BlogPost[]> {
+        if (!supabase) {
+            console.warn('⚠️ Supabase not configured - returning mock data');
+            return [];
+        }
+        
         let query = supabase
             .from('blog_posts')
             .select('*')
@@ -256,7 +261,7 @@ class BlogService {
     }
 
     // Helpers
-    private mapPost(dbPost: any): BlogPost {
+    private mapPost(dbPost: Record<string, unknown>): BlogPost {
         return {
             id: dbPost.id,
             title: dbPost.title,
@@ -281,7 +286,7 @@ class BlogService {
         };
     }
 
-    private mapCategory(dbCat: any): BlogCategory {
+    private mapCategory(dbCat: Record<string, unknown>): BlogCategory {
         return {
             id: dbCat.id,
             name: dbCat.name,

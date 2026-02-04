@@ -15,7 +15,42 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         .map((e: string) => e.trim())
         .filter(Boolean);
 
+    // Development bypass - remover em produção
+    const isDevelopment = import.meta.env.DEV && import.meta.env.VITE_DEBUG === 'true';
+
     useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                // Development bypass
+                if (isDevelopment) {
+                    console.log('🔓 Development mode: Bypassing authentication');
+                    setIsAuthenticated(true);
+                    setLoading(false);
+                    return;
+                }
+
+                const authenticated = await authService.isAuthenticated();
+                if (!authenticated) {
+                    setIsAuthenticated(false);
+                    return;
+                }
+
+                if (adminEmails.length === 0) {
+                    setIsAuthenticated(true);
+                    return;
+                }
+
+                const user = await authService.getCurrentUser();
+                const email = user?.email ?? '';
+                setIsAuthenticated(adminEmails.includes(email));
+            } catch (error) {
+                console.error('Auth check error:', error);
+                setIsAuthenticated(false);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         checkAuth();
 
         // Listen to auth changes
@@ -37,31 +72,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         return () => {
             subscription.unsubscribe();
         };
-    }, []);
-
-    const checkAuth = async () => {
-        try {
-            const authenticated = await authService.isAuthenticated();
-            if (!authenticated) {
-                setIsAuthenticated(false);
-                return;
-            }
-
-            if (adminEmails.length === 0) {
-                setIsAuthenticated(true);
-                return;
-            }
-
-            const user = await authService.getCurrentUser();
-            const email = user?.email ?? '';
-            setIsAuthenticated(adminEmails.includes(email));
-        } catch (error) {
-            console.error('Auth check error:', error);
-            setIsAuthenticated(false);
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [adminEmails, isDevelopment]);
 
     if (loading) {
         return (

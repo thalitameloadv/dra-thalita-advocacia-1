@@ -334,6 +334,9 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
                 ...data,
                 featuredImage,
                 readingTime,
+                author: 'Dra. Thalita Melo',
+                category: data.category || 'Direito Civil',
+                publishedAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
 
@@ -364,8 +367,10 @@ const ArticleEditor = ({ articleId, onSave, onPublish }: ArticleEditorProps) => 
                 ...data,
                 featuredImage,
                 readingTime,
-                status: isScheduled ? 'draft' : 'published',
+                status: (isScheduled ? 'draft' : 'published') as 'draft' | 'published' | 'archived',
                 publishedAt: isScheduled ? undefined : new Date().toISOString(),
+                author: 'Dra. Thalita Melo',
+                category: data.category || 'Direito Civil',
                 updatedAt: new Date().toISOString()
             };
 
