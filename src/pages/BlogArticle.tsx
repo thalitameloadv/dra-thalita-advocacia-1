@@ -155,7 +155,13 @@ const BlogArticle = () => {
         return null;
     }
 
-    const canonicalUrl = `${window.location.origin}/blog/${post.slug}`;
+    const [currentOrigin, setCurrentOrigin] = useState('');
+    
+    useEffect(() => {
+        setCurrentOrigin(window.location.origin);
+    }, []);
+
+    const canonicalUrl = currentOrigin ? `${currentOrigin}/blog/${post.slug}` : '';
 
     // Generate advanced SEO metadata
     const aiMetaTags = seoService.generateComprehensiveMetaTags(post);

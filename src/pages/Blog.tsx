@@ -22,6 +22,14 @@ const Blog = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'title'>('recent');
   const [loading, setLoading] = useState(true);
+  const [currentUrl, setCurrentUrl] = useState('');
+  const [currentOrigin, setCurrentOrigin] = useState('');
+
+  useEffect(() => {
+    // Set window location values after mount to avoid SSR issues
+    setCurrentUrl(window.location.href);
+    setCurrentOrigin(window.location.origin);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -92,7 +100,7 @@ const Blog = () => {
       "@type": "Blog",
       "name": "Blog Direito em Foco",
       "description": "Artigos especializados em direito previdenciário, trabalhista e familiar",
-      "url": window.location.href,
+      "url": currentUrl,
       "blogPost": filteredPosts.map(post => ({
         "@type": "BlogPosting",
         "headline": post.title,
@@ -104,7 +112,7 @@ const Blog = () => {
         "datePublished": post.publishedAt,
         "dateModified": post.updatedAt,
         "image": post.featuredImage,
-        "url": `${window.location.origin}/blog/${post.slug}`
+        "url": `${currentOrigin}/blog/${post.slug}`
       }))
     };
   };
@@ -130,13 +138,13 @@ const Blog = () => {
         <meta property="og:title" content="Blog Direito em Foco" />
         <meta property="og:description" content="Artigos especializados em direito previdenciário, trabalhista e familiar" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={currentUrl} />
         <meta property="og:image" content="/images/blog/og-image.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Blog Direito em Foco" />
         <meta name="twitter:description" content="Artigos especializados em direito previdenciário, trabalhista e familiar" />
         <meta name="twitter:image" content="/images/blog/og-image.jpg" />
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={currentUrl} />
         <script type="application/ld+json">
           {JSON.stringify(generateStructuredData())}
         </script>
