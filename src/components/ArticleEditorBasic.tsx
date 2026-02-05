@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
@@ -34,6 +34,7 @@ import { Switch } from '@/components/ui/switch';
 import { blogService } from '@/services/blogService';
 import { BlogPost } from '@/types/blog';
 import { toast } from 'sonner';
+import ImageUpload from '@/components/ImageUpload';
 
 interface ArticleEditorBasicProps {
     articleId?: string;
@@ -50,6 +51,8 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
     const [previewMode, setPreviewMode] = useState(false);
     const [featuredImage, setFeaturedImage] = useState('');
     const [readingTime, setReadingTime] = useState(0);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [lastSelection, setLastSelection] = useState<{ start: number; end: number } | null>(null);
     
     // Form state
     const [formData, setFormData] = useState({
@@ -136,12 +139,18 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const insertText = (tag: string) => {
-        const textarea = document.querySelector('textarea[name="content"]') as HTMLTextAreaElement;
+    const insertText = (tag: string, e?: React.MouseEvent) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        const textarea = textareaRef.current;
         if (!textarea) return;
 
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
+        // Use stored selection if available, otherwise get current
+        const start = lastSelection?.start ?? textarea.selectionStart;
+        const end = lastSelection?.end ?? textarea.selectionEnd;
         const selectedText = formData.content.substring(start, end);
 
         let newText = '';
@@ -177,10 +186,12 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
         const newContent = formData.content.substring(0, start) + newText + formData.content.substring(end);
         handleInputChange('content', newContent);
 
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             textarea.focus();
-            textarea.setSelectionRange(start + newText.length, start + newText.length);
-        }, 0);
+            const newPosition = start + newText.length;
+            textarea.setSelectionRange(newPosition, newPosition);
+            setLastSelection({ start: newPosition, end: newPosition });
+        });
     };
 
     const addTag = () => {
@@ -347,7 +358,7 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => insertText('bold')}
+                                            onClick={(e) => insertText('bold', e)}
                                             className="gap-1"
                                         >
                                             <Bold className="h-4 w-4" />
@@ -355,7 +366,7 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => insertText('italic')}
+                                            onClick={(e) => insertText('italic', e)}
                                             className="gap-1"
                                         >
                                             <Italic className="h-4 w-4" />
@@ -363,7 +374,7 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => insertText('heading')}
+                                            onClick={(e) => insertText('heading', e)}
                                             className="gap-1"
                                         >
                                             <span className="text-xs font-bold">H2</span>
@@ -371,7 +382,7 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => insertText('link')}
+                                            onClick={(e) => insertText('link', e)}
                                             className="gap-1"
                                         >
                                             <Link className="h-4 w-4" />
@@ -379,7 +390,7 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => insertText('list')}
+                                            onClick={(e) => insertText('list', e)}
                                             className="gap-1"
                                         >
                                             <List className="h-4 w-4" />
@@ -387,7 +398,7 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => insertText('ordered')}
+                                            onClick={(e) => insertText('ordered', e)}
                                             className="gap-1"
                                         >
                                             <ListOrdered className="h-4 w-4" />
@@ -395,7 +406,7 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => insertText('quote')}
+                                            onClick={(e) => insertText('quote', e)}
                                             className="gap-1"
                                         >
                                             <Quote className="h-4 w-4" />
@@ -403,7 +414,7 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => insertText('code')}
+                                            onClick={(e) => insertText('code', e)}
                                             className="gap-1"
                                         >
                                             <Code className="h-4 w-4" />
@@ -518,11 +529,12 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
 
                                             <div className="space-y-2">
                                                 <Label htmlFor="featuredImage">Imagem em Destaque</Label>
-                                                <Input
-                                                    id="featuredImage"
+                                                <ImageUpload
                                                     value={featuredImage}
-                                                    onChange={(e) => setFeaturedImage(e.target.value)}
-                                                    placeholder="URL da imagem"
+                                                    onChange={(url) => setFeaturedImage(url)}
+                                                    bucket="blog-images"
+                                                    aspectRatio="wide"
+                                                    placeholder="Upload da imagem de destaque"
                                                 />
                                             </div>
                                         </div>
@@ -543,8 +555,21 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                             <Textarea
                                                 id="content"
                                                 name="content"
+                                                ref={textareaRef}
                                                 value={formData.content}
                                                 onChange={(e) => handleInputChange('content', e.target.value)}
+                                                onBlur={() => {
+                                                    const textarea = textareaRef.current;
+                                                    if (textarea) {
+                                                        setLastSelection({ start: textarea.selectionStart, end: textarea.selectionEnd });
+                                                    }
+                                                }}
+                                                onSelect={() => {
+                                                    const textarea = textareaRef.current;
+                                                    if (textarea) {
+                                                        setLastSelection({ start: textarea.selectionStart, end: textarea.selectionEnd });
+                                                    }
+                                                }}
                                                 placeholder="Digite o conteúdo do artigo aqui..."
                                                 rows={20}
                                                 className="font-mono"

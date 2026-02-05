@@ -19,7 +19,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import NewsletterAdminEnhanced from "./pages/NewsletterAdminEnhanced";
 import CreateNewsletter from "./pages/CreateNewsletter";
-import CreateArticleDirect from "./pages/CreateArticleDirect";
+import CreateArticleEnhanced from "./pages/CreateArticleEnhanced";
 
 import ErrorBoundaryEnhanced from "./components/ErrorBoundaryEnhanced";
 
@@ -66,14 +66,14 @@ const App = () => {
                 {/* Criar novo artigo - DEVE vir antes de rotas com parâmetros */}
                 <Route path="/admin/blog/novo" element={
                   <ProtectedRoute>
-                    <CreateArticleDirect />
+                    <CreateArticleEnhanced />
                   </ProtectedRoute>
                 } />
 
                 {/* Editar artigo existente */}
                 <Route path="/admin/blog/editar/:id" element={
                   <ProtectedRoute>
-                    <CreateArticleDirect />
+                    <CreateArticleEnhanced />
                   </ProtectedRoute>
                 } />
 
