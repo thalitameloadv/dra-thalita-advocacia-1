@@ -1,21 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
-    ArrowLeft,
-    Save,
-    Send,
-    Eye,
-    Bold,
-    Italic,
-    Link,
-    List,
-    ListOrdered,
-    Quote,
-    Code,
-    Plus,
-    X,
-    Clock
+    ArrowLeft, Save, Send, Eye, Bold, Italic, Link, List, ListOrdered, Quote, Code,
+    Plus, X, Clock, Search, BarChart3, Target, FileText, Layout, Sparkles, ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,14 +11,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+    Collapsible, CollapsibleContent, CollapsibleTrigger
+} from '@/components/ui/collapsible';
 import { blogService } from '@/services/blogService';
 import { BlogPost } from '@/types/blog';
 import { toast } from 'sonner';
@@ -78,6 +65,16 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
     ];
 
     const [newTag, setNewTag] = useState('');
+    const [seoScore, setSeoScore] = useState(0);
+    const [showTemplates, setShowTemplates] = useState(false);
+
+    // Article templates
+    const templates = [
+        { id: 'blank', name: 'Em branco', icon: FileText, content: '' },
+        { id: 'legal-guide', name: 'Guia Jurídico', icon: Layout, content: '# Guia Completo: [Tema]\n\n## O que é [Tema]?\n\n[Explicação clara e objetiva]\n\n## Quando você precisa de um advogado?\n\n- [Situação 1]\n- [Situação 2]\n- [Situação 3]\n\n## Como funciona o processo?\n\n1. [Etapa 1]\n2. [Etapa 2]\n3. [Etapa 3]\n\n## Prazos importantes\n\n⚠️ **Atenção**: [Informações sobre prazos]\n\n## Conclusão\n\n[Resumo e call-to-action]' },
+        { id: 'faq', name: 'Perguntas Frequentes', icon: Target, content: '# Perguntas Frequentes sobre [Tema]\n\n## 1. [Pergunta 1]?\n\n[Resposta detalhada]\n\n## 2. [Pergunta 2]?\n\n[Resposta detalhada]\n\n## 3. [Pergunta 3]?\n\n[Resposta detalhada]\n\n## Precisa de ajuda?\n\nEntre em contato com nossa equipe especializada.' },
+        { id: 'case-study', name: 'Caso de Sucesso', icon: Sparkles, content: '# Caso de Sucesso: [Título]\n\n## O Desafio\n\n[Descrição da situação do cliente]\n\n## Nossa Solução\n\n[Como ajudamos o cliente]\n\n## O Resultado\n\n[Resultado alcançado]\n\n> "[Depoimento do cliente]"\n\n## Quer um resultado similar?\n\n[Call-to-action]' }
+    ];
 
     useEffect(() => {
         if (articleId) {
@@ -106,6 +103,48 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
             setReadingTime(minutes);
         }
     }, [formData.content]);
+
+    // Calculate SEO Score
+    useEffect(() => {
+        let score = 0;
+        const maxScore = 100;
+        
+        // Title optimization (20 points)
+        if (formData.title) {
+            if (formData.title.length >= 30 && formData.title.length <= 60) score += 20;
+            else if (formData.title.length >= 20) score += 10;
+            else score += 5;
+        }
+        
+        // Meta description (20 points)
+        if (formData.seoDescription) {
+            if (formData.seoDescription.length >= 120 && formData.seoDescription.length <= 160) score += 20;
+            else if (formData.seoDescription.length >= 50) score += 10;
+            else score += 5;
+        }
+        
+        // Content length (20 points)
+        if (formData.content) {
+            const wordCount = formData.content.split(/\s+/).length;
+            if (wordCount >= 500) score += 20;
+            else if (wordCount >= 300) score += 15;
+            else if (wordCount >= 100) score += 10;
+            else score += 5;
+        }
+        
+        // Keywords (15 points)
+        if (formData.seoKeywords && formData.seoKeywords.length >= 3) score += 15;
+        else if (formData.seoKeywords && formData.seoKeywords.length > 0) score += 5;
+        
+        // Featured image (15 points)
+        if (featuredImage) score += 15;
+        
+        // Excerpt (10 points)
+        if (formData.excerpt && formData.excerpt.length >= 50) score += 10;
+        else if (formData.excerpt) score += 5;
+        
+        setSeoScore(Math.min(score, maxScore));
+    }, [formData.title, formData.seoDescription, formData.content, formData.seoKeywords, formData.excerpt, featuredImage]);
 
     const loadArticle = async () => {
         try {
@@ -203,6 +242,12 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
 
     const removeTag = (tagToRemove: string) => {
         handleInputChange('tags', formData.tags.filter(tag => tag !== tagToRemove));
+    };
+
+    const applyTemplate = (templateContent: string) => {
+        handleInputChange('content', templateContent);
+        setShowTemplates(false);
+        toast.success('Template aplicado!');
     };
 
     const handleSave = async () => {
@@ -423,10 +468,86 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                 </CardContent>
                             </Card>
 
+                            {/* SEO Score */}
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <BarChart3 className="h-5 w-5" />
+                                        SEO Score
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    <div className="flex items-center gap-3">
+                                        <Progress value={seoScore} className="flex-1" />
+                                        <span className={`font-bold ${seoScore >= 80 ? 'text-green-600' : seoScore >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                            {seoScore}%
+                                        </span>
+                                    </div>
+                                    <Collapsible>
+                                        <CollapsibleTrigger className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900">
+                                            <ChevronDown className="h-4 w-4" />
+                                            Ver detalhes
+                                        </CollapsibleTrigger>
+                                        <CollapsibleContent className="space-y-2 mt-2">
+                                            <div className="text-xs space-y-1">
+                                                <p className={formData.title.length >= 30 ? 'text-green-600' : 'text-red-500'}>
+                                                    • Título: {formData.title.length}/60 caracteres
+                                                </p>
+                                                <p className={formData.seoDescription.length >= 120 ? 'text-green-600' : 'text-red-500'}>
+                                                    • Meta descrição: {formData.seoDescription.length}/160 caracteres
+                                                </p>
+                                                <p className={formData.content.split(/\s+/).length >= 300 ? 'text-green-600' : 'text-red-500'}>
+                                                    • Conteúdo: {formData.content.split(/\s+/).length} palavras
+                                                </p>
+                                                <p className={featuredImage ? 'text-green-600' : 'text-red-500'}>
+                                                    • {featuredImage ? 'Imagem definida' : 'Imagem em destaque ausente'}
+                                                </p>
+                                            </div>
+                                        </CollapsibleContent>
+                                    </Collapsible>
+                                </CardContent>
+                            </Card>
+
+                            {/* Templates */}
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <Layout className="h-5 w-5" />
+                                        Templates
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-2">
+                                    <Collapsible open={showTemplates} onOpenChange={setShowTemplates}>
+                                        <CollapsibleTrigger asChild>
+                                            <Button variant="outline" className="w-full justify-between">
+                                                Escolher template
+                                                <ChevronDown className="h-4 w-4" />
+                                            </Button>
+                                        </CollapsibleTrigger>
+                                        <CollapsibleContent className="space-y-2 mt-2">
+                                            {templates.map((template) => (
+                                                <Button
+                                                    key={template.id}
+                                                    variant="ghost"
+                                                    className="w-full justify-start gap-2"
+                                                    onClick={() => applyTemplate(template.content)}
+                                                >
+                                                    <template.icon className="h-4 w-4" />
+                                                    {template.name}
+                                                </Button>
+                                            ))}
+                                        </CollapsibleContent>
+                                    </Collapsible>
+                                </CardContent>
+                            </Card>
+
                             {/* Tags */}
                             <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Tags</CardTitle>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <Search className="h-5 w-5" />
+                                        Tags & Keywords
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
                                     <div className="flex gap-2">
@@ -441,11 +562,7 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                                 }
                                             }}
                                         />
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            onClick={addTag}
-                                        >
+                                        <Button type="button" size="sm" onClick={addTag}>
                                             <Plus className="h-4 w-4" />
                                         </Button>
                                     </div>
@@ -453,12 +570,17 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                         {formData.tags.map((tag) => (
                                             <Badge key={tag} variant="secondary" className="gap-1">
                                                 {tag}
-                                                <X
-                                                    className="h-3 w-3 cursor-pointer"
-                                                    onClick={() => removeTag(tag)}
-                                                />
+                                                <X className="h-3 w-3 cursor-pointer" onClick={() => removeTag(tag)} />
                                             </Badge>
                                         ))}
+                                    </div>
+                                    <div className="space-y-2 pt-2 border-t">
+                                        <Label className="text-xs text-slate-500">Palavras-chave SEO</Label>
+                                        <Input
+                                            placeholder="keyword1, keyword2, keyword3"
+                                            value={formData.seoKeywords?.join(', ') || ''}
+                                            onChange={(e) => handleInputChange('seoKeywords', e.target.value.split(',').map(k => k.trim()).filter(Boolean))}
+                                        />
                                     </div>
                                 </CardContent>
                             </Card>

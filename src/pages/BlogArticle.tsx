@@ -252,6 +252,21 @@ const BlogArticle = () => {
             <Header />
 
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pt-20">
+                {/* Breadcrumbs */}
+                <div className="bg-white border-b border-slate-200">
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                        <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-sm text-slate-600">
+                            <Link to="/" className="hover:text-slate-900 transition-colors">Início</Link>
+                            <ChevronRight className="h-4 w-4" />
+                            <Link to="/blog" className="hover:text-slate-900 transition-colors">Blog</Link>
+                            <ChevronRight className="h-4 w-4" />
+                            <span className="text-slate-900 font-medium truncate max-w-[200px]">{post.category}</span>
+                            <ChevronRight className="h-4 w-4" />
+                            <span className="text-slate-900 font-medium truncate max-w-[300px]" aria-current="page">{post.title}</span>
+                        </nav>
+                    </div>
+                </div>
+
                 {/* Header Navigation */}
                 <div className="bg-white border-b border-slate-200">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
