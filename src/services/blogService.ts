@@ -263,36 +263,36 @@ class BlogService {
     // Helpers
     private mapPost(dbPost: Record<string, unknown>): BlogPost {
         return {
-            id: dbPost.id,
-            title: dbPost.title,
-            slug: dbPost.slug,
-            excerpt: dbPost.excerpt || '',
-            content: dbPost.content || '',
-            author: dbPost.author || 'Dra. Thalita Melo',
-            authorAvatar: dbPost.author_avatar,
-            authorBio: dbPost.author_bio,
-            publishedAt: dbPost.published_at,
-            updatedAt: dbPost.updated_at,
-            status: dbPost.status,
-            featuredImage: dbPost.featured_image,
-            category: dbPost.category,
-            tags: dbPost.tags || [],
-            seoTitle: dbPost.seo_title,
-            seoDescription: dbPost.seo_description,
-            seoKeywords: dbPost.seo_keywords,
-            readingTime: dbPost.reading_time || 0,
-            views: dbPost.views || 0,
-            likes: dbPost.likes || 0
+            id: dbPost.id as string,
+            title: dbPost.title as string,
+            slug: dbPost.slug as string,
+            excerpt: (dbPost.excerpt as string) || '',
+            content: (dbPost.content as string) || '',
+            author: (dbPost.author as string) || 'Dra. Thalita Melo',
+            authorAvatar: dbPost.author_avatar as string | undefined,
+            authorBio: dbPost.author_bio as string | undefined,
+            publishedAt: dbPost.published_at as string,
+            updatedAt: dbPost.updated_at as string,
+            status: dbPost.status as 'draft' | 'published' | 'archived',
+            featuredImage: dbPost.featured_image as string | undefined,
+            category: dbPost.category as string,
+            tags: (dbPost.tags as string[]) || [],
+            seoTitle: dbPost.seo_title as string | undefined,
+            seoDescription: dbPost.seo_description as string | undefined,
+            seoKeywords: dbPost.seo_keywords as string[] | undefined,
+            readingTime: (dbPost.reading_time as number) || 0,
+            views: (dbPost.views as number) || 0,
+            likes: (dbPost.likes as number) || 0
         };
     }
 
     private mapCategory(dbCat: Record<string, unknown>): BlogCategory {
         return {
-            id: dbCat.id,
-            name: dbCat.name,
-            slug: dbCat.slug,
-            description: dbCat.description,
-            color: dbCat.color
+            id: dbCat.id as string,
+            name: dbCat.name as string,
+            slug: dbCat.slug as string,
+            description: dbCat.description as string | undefined,
+            color: dbCat.color as string | undefined
         };
     }
 }

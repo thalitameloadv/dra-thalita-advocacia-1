@@ -9,6 +9,7 @@
 **Causa:** A função `formatText` estava usando `watchedValues.content` que pode não estar sincronizado com o valor real do formulário no momento do clique.
 
 **Solução:** Modificamos a função para usar `getValues('content')` que obtém o valor atual diretamente do formulário. Também ajustamos:
+
 - Uso de `setValue` com a opção `{ shouldDirty: true }` para marcar o formulário como modificado
 - Aumento do timeout de 0ms para 10ms para garantir que o DOM seja atualizado antes de reposicionar o cursor
 - Melhor cálculo da nova posição do cursor
@@ -55,6 +56,7 @@ const formatText = (format: string) => {
 **Causa:** O serviço de upload de imagens (`imageUploadService.ts`) estava tentando salvar metadados na tabela `uploaded_images` do Supabase, que pode não existir ou não ter as permissões RLS (Row Level Security) configuradas corretamente.
 
 **Solução:** Tornamos o salvamento de metadados no banco de dados **opcional**. Agora:
+
 1. O upload da imagem para o Supabase Storage sempre funciona
 2. Tentamos salvar os metadados no banco de dados
 3. Se falhar (tabela não existe ou sem permissão), apenas logamos um aviso e retornamos a imagem com sucesso
@@ -100,7 +102,7 @@ async uploadImage(file: File, options: ImageUploadOptions = {}): Promise<Uploade
 
 ## Como Testar
 
-### Testando os Botões de Formatação:
+### Testando os Botões de Formatação
 
 1. Acesse `/admin/blog/novo` ou `/admin/blog/editar/:id`
 2. No campo "Conteúdo do Artigo", digite algum texto
@@ -108,7 +110,7 @@ async uploadImage(file: File, options: ImageUploadOptions = {}): Promise<Uploade
 4. Clique em um dos botões de formatação (B, I, Link, Lista, etc.)
 5. O texto selecionado deve ser formatado com a sintaxe Markdown correspondente
 
-### Testando o Upload de Imagem:
+### Testando o Upload de Imagem
 
 1. Acesse `/admin/blog/novo` ou `/admin/blog/editar/:id`
 2. Role até a seção "Imagens do Artigo"
@@ -116,7 +118,7 @@ async uploadImage(file: File, options: ImageUploadOptions = {}): Promise<Uploade
 4. Selecione uma imagem do seu computador
 5. A imagem deve ser enviada com sucesso e exibida no preview
 
-**OU**
+#### Alternativa
 
 1. No campo "Conteúdo do Artigo", clique no botão de imagem (ícone de imagem)
 2. Faça upload de uma imagem
