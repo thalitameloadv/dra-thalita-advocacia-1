@@ -161,7 +161,7 @@ const CreateArticleEnhanced = () => {
     const [readabilityScore, setReadabilityScore] = useState(0);
     const [availableTags, setAvailableTags] = useState<string[]>([]);
     const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
-    const autoSaveRef = useRef<NodeJS.Timeout | null>(null);
+    const autoSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         loadAvailableTags();
@@ -826,7 +826,7 @@ const CreateArticleEnhanced = () => {
                                                     <Label>Título SEO</Label>
                                                     <Input
                                                         value={article?.seoTitle || ''}
-                                                        onChange={(e) => setArticle({...article!, seoTitle: e.target.value})}
+                                                        onChange={(e) => setArticle({...article, seoTitle: e.target.value})}
                                                         placeholder="Título otimizado para SEO (30-60 caracteres)"
                                                     />
                                                     <p className="text-xs text-slate-500 mt-1">
@@ -837,7 +837,7 @@ const CreateArticleEnhanced = () => {
                                                     <Label>Meta Descrição</Label>
                                                     <Textarea
                                                         value={article?.seoDescription || ''}
-                                                        onChange={(e) => setArticle({...article!, seoDescription: e.target.value})}
+                                                        onChange={(e) => setArticle({...(article || {}), seoDescription: e.target.value})}
                                                         placeholder="Descrição para resultados de busca (120-160 caracteres)"
                                                         rows={3}
                                                     />
@@ -851,7 +851,7 @@ const CreateArticleEnhanced = () => {
                                                 <Label>Palavras-chave</Label>
                                                 <Input
                                                     value={article?.seoKeywords?.join(', ') || ''}
-                                                    onChange={(e) => setArticle({...article!, seoKeywords: e.target.value.split(',').map(k => k.trim())})}
+                                                    onChange={(e) => setArticle({...(article || {}), seoKeywords: e.target.value.split(',').map(k => k.trim())})}
                                                     placeholder="palavra1, palavra2, palavra3"
                                                 />
                                             </div>
@@ -900,13 +900,13 @@ const CreateArticleEnhanced = () => {
                                     <Label>URL Canônica</Label>
                                     <Input
                                         value={article?.canonicalUrl || ''}
-                                        onChange={(e) => setArticle({...article!, canonicalUrl: e.target.value})}
+                                        onChange={(e) => setArticle({...(article || {}), canonicalUrl: e.target.value})}
                                         placeholder="https://exemplo.com/artigo"
                                     />
                                 </div>
                                 <div>
                                     <Label>Priority</Label>
-                                    <Select value={article?.priority?.toString() || '0.5'} onValueChange={(value) => setArticle({...article!, priority: parseFloat(value)})}>
+                                    <Select value={article?.priority?.toString() || '0.5'} onValueChange={(value) => setArticle({...(article || {}), priority: parseFloat(value)})}>
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
@@ -921,7 +921,7 @@ const CreateArticleEnhanced = () => {
                             
                             <div>
                                 <Label>Change Frequency</Label>
-                                <Select value={article?.changeFrequency || 'weekly'} onValueChange={(value: any) => setArticle({...article!, changeFrequency: value})}>
+                                <Select value={article?.changeFrequency || 'weekly'} onValueChange={(value: any) => setArticle({...(article || {}), changeFrequency: value})}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
@@ -959,7 +959,7 @@ const CreateArticleEnhanced = () => {
                                 <Label>Data e Hora</Label>
                                 <Input
                                     type="datetime-local"
-                                    onChange={(e) => setArticle({...article!, scheduledPublishAt: e.target.value})}
+                                    onChange={(e) => setArticle({...(article || {}), scheduledPublishAt: e.target.value})}
                                 />
                             </div>
                             <div className="flex gap-2">
