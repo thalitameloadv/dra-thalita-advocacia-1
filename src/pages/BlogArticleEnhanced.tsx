@@ -569,7 +569,9 @@ const BlogArticleEnhanced = () => {
                                     <div 
                                         ref={contentRef}
                                         className="blog-content"
-                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatContent(post.content)) }}
+                                        dangerouslySetInnerHTML={{
+                                            __html: sanitizeHtml(post.contentHtml || formatContent(post.content))
+                                        }}
                                     />
                                 </article>
 

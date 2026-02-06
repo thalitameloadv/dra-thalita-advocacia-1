@@ -52,7 +52,9 @@ import { newsletterCampaignService, CampaignTemplate } from '@/services/newslett
 import { newsletterService } from '@/services/newsletterService';
 import { toast } from 'sonner';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
-import NewsletterImageUpload from '@/components/NewsletterImageUpload';
+import RichTextEditor from '@/components/RichTextEditor';
+import { buildEmailSafeNewsletterHtml } from '@/lib/newsletterEmail';
+import { markdownToHtml } from '@/lib/richText';
 
 const newsletterSchema = z.object({
     subject: z.string().min(1, 'O assunto é obrigatório'),
@@ -79,7 +81,6 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
     const [scheduledTime, setScheduledTime] = useState('');
     const [isScheduled, setIsScheduled] = useState(false);
     const [stats, setStats] = useState<any>(null);
-    const [showImageDialog, setShowImageDialog] = useState(false);
 
     const {
         register,
@@ -93,22 +94,7 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
     });
 
     const content = watch('content');
-
-    const insertMarkdownAtCursor = (markdown: string) => {
-        const textarea = document.querySelector('textarea[name="content"]') as HTMLTextAreaElement;
-        if (!textarea) return;
-
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const newContent = content.substring(0, start) + markdown + content.substring(end);
-        setValue('content', newContent);
-
-        setTimeout(() => {
-            textarea.focus();
-            const pos = start + markdown.length;
-            textarea.setSelectionRange(pos, pos);
-        }, 0);
-    };
+    const [contentHtml, setContentHtml] = useState('');
 
     useEffect(() => {
         loadTemplates();
@@ -146,6 +132,7 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
                     previewText: campaign.previewText,
                     content: campaign.content
                 });
+                setContentHtml(campaign.htmlContent || '');
             }
         } catch (error) {
             console.error('Error loading campaign:', error);
@@ -156,64 +143,10 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
         setValue('subject', template.subject);
         setValue('previewText', template.previewText);
         setValue('content', template.content);
+        setContentHtml('');
         setSelectedTemplate(template);
     };
 
-    const insertText = (text: string, tag?: string) => {
-        const textarea = document.querySelector('textarea[name="content"]') as HTMLTextAreaElement;
-        if (!textarea) return;
-
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const selectedText = content.substring(start, end);
-
-        let newText = '';
-
-        if (tag) {
-            switch (tag) {
-                case 'bold':
-                    newText = `**${selectedText || text}**`;
-                    break;
-                case 'italic':
-                    newText = `*${selectedText || text}*`;
-                    break;
-                case 'link':
-                    newText = `[${selectedText || text}](url)`;
-                    break;
-                case 'heading':
-                    newText = `\n## ${selectedText || text}`;
-                    break;
-                case 'list':
-                    newText = `\n- ${selectedText || text}`;
-                    break;
-                case 'ordered':
-                    newText = `\n1. ${selectedText || text}`;
-                    break;
-                case 'quote':
-                    newText = `\n> ${selectedText || text}`;
-                    break;
-                case 'code':
-                    newText = `\`${selectedText || text}\``;
-                    break;
-                case 'codeblock':
-                    newText = `\n\`\`\`\n${selectedText || text}\n\`\`\``;
-                    break;
-                default:
-                    newText = text;
-            }
-        } else {
-            newText = text;
-        }
-
-        const newContent = content.substring(0, start) + newText + content.substring(end);
-        setValue('content', newContent);
-
-        // Focus back to textarea
-        setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(start + newText.length, start + newText.length);
-        }, 0);
-    };
 
     const generatePreview = async () => {
         const subject = watch('subject');
@@ -232,11 +165,17 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
         try {
             setSaving(true);
 
+            const finalHtml = buildEmailSafeNewsletterHtml({
+                subject: data.subject,
+                contentHtml: contentHtml || markdownToHtml(data.content)
+            });
+
             if (campaignId) {
                 const updated = await newsletterCampaignService.updateCampaign(campaignId, {
                     subject: data.subject,
                     previewText: data.previewText || '',
                     content: data.content,
+                    htmlContent: finalHtml,
                     status: 'draft'
                 });
                 toast.success('Newsletter salva com sucesso!');
@@ -246,6 +185,7 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
                     subject: data.subject,
                     previewText: data.previewText || '',
                     content: data.content,
+                    htmlContent: finalHtml,
                     status: 'draft'
                 });
                 toast.success('Newsletter criada com sucesso!');
@@ -265,14 +205,28 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
 
             let campaignIdToSend = campaignId;
 
+            const finalHtml = buildEmailSafeNewsletterHtml({
+                subject: data.subject,
+                contentHtml: contentHtml || markdownToHtml(data.content)
+            });
+
             if (!campaignIdToSend) {
                 const created = await newsletterCampaignService.createCampaign({
                     subject: data.subject,
                     previewText: data.previewText || '',
                     content: data.content,
+                    htmlContent: finalHtml,
                     status: 'draft'
                 });
                 campaignIdToSend = created.id;
+            } else {
+                await newsletterCampaignService.updateCampaign(campaignIdToSend, {
+                    subject: data.subject,
+                    previewText: data.previewText || '',
+                    content: data.content,
+                    htmlContent: finalHtml,
+                    status: 'draft'
+                });
             }
 
             if (isScheduled && scheduledDate && scheduledTime) {
@@ -360,123 +314,6 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
                         </CardContent>
                     </Card>
 
-                    {/* Formatting Tools */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Formatação</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => insertText('', 'bold')}
-                                    className="gap-1"
-                                >
-                                    <Bold className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => insertText('', 'italic')}
-                                    className="gap-1"
-                                >
-                                    <Italic className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => insertText('', 'heading')}
-                                    className="gap-1"
-                                >
-                                    <h1 className="text-xs font-bold">H2</h1>
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => insertText('', 'link')}
-                                    className="gap-1"
-                                >
-                                    <Link className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setShowImageDialog(true)}
-                                    className="gap-1"
-                                >
-                                    <Image className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => insertText('', 'list')}
-                                    className="gap-1"
-                                >
-                                    <List className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => insertText('', 'ordered')}
-                                    className="gap-1"
-                                >
-                                    <ListOrdered className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => insertText('', 'quote')}
-                                    className="gap-1"
-                                >
-                                    <Quote className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => insertText('', 'code')}
-                                    className="gap-1"
-                                >
-                                    <Code className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => insertText('', 'codeblock')}
-                                    className="gap-1"
-                                >
-                                    <Code className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => insertText('[Assinatura]')}
-                                    className="gap-1"
-                                >
-                                    <FileText className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Inserir imagem</DialogTitle>
-                                <DialogDescription>
-                                    Faça upload de uma imagem e ela será inserida no conteúdo da newsletter.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <NewsletterImageUpload
-                                onChange={(url) => {
-                                    if (!url) return;
-                                    insertMarkdownAtCursor(`\n![](${url})\n`);
-                                    setShowImageDialog(false);
-                                }}
-                            />
-                        </DialogContent>
-                    </Dialog>
-
                     {/* Schedule */}
                     <Card>
                         <CardHeader>
@@ -550,12 +387,17 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
 
                                 <div className="space-y-2">
                                     <Label htmlFor="content">Conteúdo *</Label>
-                                    <Textarea
-                                        id="content"
-                                        {...register('content')}
-                                        placeholder="Digite o conteúdo da newsletter aqui..."
-                                        rows={15}
-                                        className="font-mono"
+                                    <RichTextEditor
+                                        value={{
+                                            html: contentHtml,
+                                            markdown: content
+                                        }}
+                                        onChange={(val) => {
+                                            setValue('content', val.markdown, { shouldDirty: true, shouldTouch: true });
+                                            setContentHtml(val.html);
+                                        }}
+                                        imageBucket="newsletter-images"
+                                        initialContentMode={contentHtml ? 'html' : 'markdown'}
                                     />
                                     {errors.content && (
                                         <p className="text-sm text-red-600">{errors.content.message}</p>
@@ -571,7 +413,14 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
                                         <h3 className="text-lg font-semibold mb-4">Preview</h3>
                                         <div className="prose max-w-none">
                                             <h4>{watch('subject')}</h4>
-                                            <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatContent(content)) }} />
+                                            <div
+                                                dangerouslySetInnerHTML={{
+                                                    __html: sanitizeHtml(buildEmailSafeNewsletterHtml({
+                                                        subject: watch('subject') || '',
+                                                        contentHtml: contentHtml || markdownToHtml(content)
+                                                    }))
+                                                }}
+                                            />
                                         </div>
                                     </div>
                                 )}

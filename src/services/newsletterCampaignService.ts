@@ -5,6 +5,7 @@ export interface NewsletterCampaign {
     subject: string;
     previewText: string;
     content: string;
+    htmlContent?: string;
     status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed';
     sentAt?: string;
     scheduledAt?: string;
@@ -76,6 +77,7 @@ class NewsletterCampaignService {
                 subject: campaign.subject,
                 preview_text: campaign.previewText,
                 content: campaign.content,
+                html_content: campaign.htmlContent,
                 status: campaign.status,
                 sent_at: campaign.sentAt,
                 scheduled_at: campaign.scheduledAt,
@@ -97,6 +99,7 @@ class NewsletterCampaignService {
         if (updates.subject) updateData.subject = updates.subject;
         if (updates.previewText) updateData.preview_text = updates.previewText;
         if (updates.content) updateData.content = updates.content;
+        if (updates.htmlContent) updateData.html_content = updates.htmlContent;
         if (updates.status) updateData.status = updates.status;
         if (updates.sentAt) updateData.sent_at = updates.sentAt;
         if (updates.scheduledAt) updateData.scheduled_at = updates.scheduledAt;
@@ -299,6 +302,7 @@ class NewsletterCampaignService {
             subject: campaign.subject as string,
             previewText: campaign.preview_text as string,
             content: campaign.content as string,
+            htmlContent: campaign.html_content as string,
             status: campaign.status as 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed',
             sentAt: campaign.sent_at as string,
             scheduledAt: campaign.scheduled_at as string,

@@ -22,6 +22,9 @@ import { blogService } from '@/services/blogService';
 import { BlogPost } from '@/types/blog';
 import { toast } from 'sonner';
 import ImageUpload from '@/components/ImageUpload';
+import RichTextEditor from '@/components/RichTextEditor';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
+import { markdownToHtml } from '@/lib/richText';
 
 interface ArticleEditorBasicProps {
     articleId?: string;
@@ -47,6 +50,7 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
         slug: '',
         excerpt: '',
         content: '',
+        contentHtml: '',
         category: '',
         tags: [] as string[],
         seoTitle: '',
@@ -156,6 +160,7 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                     slug: article.slug,
                     excerpt: article.excerpt,
                     content: article.content,
+                    contentHtml: article.contentHtml || '',
                     category: article.category,
                     tags: article.tags || [],
                     seoTitle: article.seoTitle || '',
@@ -674,31 +679,18 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                     <CardContent className="space-y-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="content">Conteúdo *</Label>
-                                            <Textarea
-                                                id="content"
-                                                name="content"
-                                                ref={textareaRef}
-                                                value={formData.content}
-                                                onChange={(e) => handleInputChange('content', e.target.value)}
-                                                onBlur={() => {
-                                                    const textarea = textareaRef.current;
-                                                    if (textarea) {
-                                                        setLastSelection({ start: textarea.selectionStart, end: textarea.selectionEnd });
-                                                    }
+                                            <RichTextEditor
+                                                value={{
+                                                    html: formData.contentHtml,
+                                                    markdown: formData.content
                                                 }}
-                                                onSelect={() => {
-                                                    const textarea = textareaRef.current;
-                                                    if (textarea) {
-                                                        setLastSelection({ start: textarea.selectionStart, end: textarea.selectionEnd });
-                                                    }
+                                                onChange={(val) => {
+                                                    handleInputChange('content', val.markdown);
+                                                    handleInputChange('contentHtml', val.html);
                                                 }}
-                                                placeholder="Digite o conteúdo do artigo aqui..."
-                                                rows={20}
-                                                className="font-mono"
+                                                imageBucket="blog-images"
+                                                initialContentMode={formData.contentHtml ? 'html' : 'markdown'}
                                             />
-                                            <p className="text-xs text-slate-500">
-                                                Você pode usar markdown básico para formatação. Use ## para subtítulos, **texto** para negrito, *texto* para itálico.
-                                            </p>
                                         </div>
 
                                         {/* Preview Mode */}
@@ -706,7 +698,11 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                             <div className="border rounded-lg p-6 bg-white">
                                                 <h3 className="text-lg font-semibold mb-4">Preview</h3>
                                                 <div className="prose max-w-none">
-                                                    <div dangerouslySetInnerHTML={{ __html: formatContent(formData.content) }} />
+                                                    <div
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: sanitizeHtml(formData.contentHtml || markdownToHtml(formData.content))
+                                                        }}
+                                                    />
                                                 </div>
                                             </div>
                                         )}

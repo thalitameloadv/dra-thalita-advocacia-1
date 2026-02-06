@@ -71,10 +71,12 @@ class BlogService {
     }
 
     async createPost(post: Omit<BlogPost, 'id' | 'views' | 'likes' | 'createdAt' | 'updatedAt'>): Promise<BlogPost> {
+        const { contentHtml, ...rest } = post;
         const { data, error } = await supabase
             .from('blog_posts')
             .insert([{
-                ...post,
+                ...rest,
+                content_html: contentHtml,
                 views: 0,
                 likes: 0,
                 published_at: post.publishedAt || (post.status === 'published' ? new Date().toISOString() : null)
@@ -91,10 +93,12 @@ class BlogService {
     }
 
     async updatePost(id: string, updates: Partial<BlogPost>): Promise<BlogPost> {
+        const { contentHtml, ...rest } = updates;
         const { data, error } = await supabase
             .from('blog_posts')
             .update({
-                ...updates,
+                ...rest,
+                content_html: contentHtml,
                 updated_at: new Date().toISOString()
             })
             .eq('id', id)
@@ -268,6 +272,7 @@ class BlogService {
             slug: dbPost.slug as string,
             excerpt: (dbPost.excerpt as string) || '',
             content: (dbPost.content as string) || '',
+            contentHtml: (dbPost.content_html as string) || (dbPost.html_content as string) || undefined,
             author: (dbPost.author as string) || 'Dra. Thalita Melo',
             authorAvatar: dbPost.author_avatar as string | undefined,
             authorBio: dbPost.author_bio as string | undefined,
