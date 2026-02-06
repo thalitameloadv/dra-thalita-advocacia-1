@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,7 +15,7 @@ interface NewsletterImageUploadProps {
   placeholder?: string;
   className?: string;
   aspectRatio?: 'square' | 'video' | 'portrait' | 'wide' | 'newsletter';
-  disabled?: false;
+  disabled?: boolean;
   maxSize?: number;
   newsletterId?: string;
 }

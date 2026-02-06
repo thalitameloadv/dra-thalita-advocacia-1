@@ -52,6 +52,7 @@ import { newsletterCampaignService, CampaignTemplate } from '@/services/newslett
 import { newsletterService } from '@/services/newsletterService';
 import { toast } from 'sonner';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
+import NewsletterImageUpload from '@/components/NewsletterImageUpload';
 
 const newsletterSchema = z.object({
     subject: z.string().min(1, 'O assunto é obrigatório'),
@@ -78,6 +79,7 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
     const [scheduledTime, setScheduledTime] = useState('');
     const [isScheduled, setIsScheduled] = useState(false);
     const [stats, setStats] = useState<any>(null);
+    const [showImageDialog, setShowImageDialog] = useState(false);
 
     const {
         register,
@@ -91,6 +93,22 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
     });
 
     const content = watch('content');
+
+    const insertMarkdownAtCursor = (markdown: string) => {
+        const textarea = document.querySelector('textarea[name="content"]') as HTMLTextAreaElement;
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const newContent = content.substring(0, start) + markdown + content.substring(end);
+        setValue('content', newContent);
+
+        setTimeout(() => {
+            textarea.focus();
+            const pos = start + markdown.length;
+            textarea.setSelectionRange(pos, pos);
+        }, 0);
+    };
 
     useEffect(() => {
         loadTemplates();
@@ -162,6 +180,9 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
                 case 'link':
                     newText = `[${selectedText || text}](url)`;
                     break;
+                case 'heading':
+                    newText = `\n## ${selectedText || text}`;
+                    break;
                 case 'list':
                     newText = `\n- ${selectedText || text}`;
                     break;
@@ -173,6 +194,9 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
                     break;
                 case 'code':
                     newText = `\`${selectedText || text}\``;
+                    break;
+                case 'codeblock':
+                    newText = `\n\`\`\`\n${selectedText || text}\n\`\`\``;
                     break;
                 default:
                     newText = text;
@@ -362,10 +386,26 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
                                 <Button
                                     variant="outline"
                                     size="sm"
+                                    onClick={() => insertText('', 'heading')}
+                                    className="gap-1"
+                                >
+                                    <h1 className="text-xs font-bold">H2</h1>
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
                                     onClick={() => insertText('', 'link')}
                                     className="gap-1"
                                 >
                                     <Link className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowImageDialog(true)}
+                                    className="gap-1"
+                                >
+                                    <Image className="h-4 w-4" />
                                 </Button>
                                 <Button
                                     variant="outline"
@@ -402,6 +442,14 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
                                 <Button
                                     variant="outline"
                                     size="sm"
+                                    onClick={() => insertText('', 'codeblock')}
+                                    className="gap-1"
+                                >
+                                    <Code className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
                                     onClick={() => insertText('[Assinatura]')}
                                     className="gap-1"
                                 >
@@ -410,6 +458,24 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
                             </div>
                         </CardContent>
                     </Card>
+
+                    <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Inserir imagem</DialogTitle>
+                                <DialogDescription>
+                                    Faça upload de uma imagem e ela será inserida no conteúdo da newsletter.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <NewsletterImageUpload
+                                onChange={(url) => {
+                                    if (!url) return;
+                                    insertMarkdownAtCursor(`\n![](${url})\n`);
+                                    setShowImageDialog(false);
+                                }}
+                            />
+                        </DialogContent>
+                    </Dialog>
 
                     {/* Schedule */}
                     <Card>
