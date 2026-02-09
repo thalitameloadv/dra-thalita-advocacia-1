@@ -921,7 +921,7 @@ const CreateArticleEnhanced = () => {
                             
                             <div>
                                 <Label>Change Frequency</Label>
-                                <Select value={article?.changeFrequency || 'weekly'} onValueChange={(value: any) => setArticle({...(article || {}), changeFrequency: value})}>
+                                <Select value={article?.changeFrequency || 'weekly'} onValueChange={(value: string) => setArticle({...(article || {}), changeFrequency: value})}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
