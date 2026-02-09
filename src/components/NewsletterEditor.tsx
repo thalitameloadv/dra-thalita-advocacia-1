@@ -23,7 +23,11 @@ import {
     Clock,
     Users,
     BarChart3,
-    Layout
+    Layout,
+    Sparkles,
+    ChevronDown,
+    Plus,
+    X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,6 +85,10 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
     const [scheduledTime, setScheduledTime] = useState('');
     const [isScheduled, setIsScheduled] = useState(false);
     const [stats, setStats] = useState<any>(null);
+    const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+    const [newTemplateName, setNewTemplateName] = useState('');
+    const [newTemplateSubject, setNewTemplateSubject] = useState('');
+    const [newTemplateContent, setNewTemplateContent] = useState('');
 
     const {
         register,
@@ -148,16 +156,60 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
     };
 
 
-    const generatePreview = async () => {
-        const subject = watch('subject');
-        const newsletterContent = watch('content');
+    const createTemplate = async () => {
+        if (!newTemplateName || !newTemplateSubject || !newTemplateContent) {
+            toast.error('Preencha todos os campos do template');
+            return;
+        }
 
         try {
-            const preview = await newsletterCampaignService.generatePreview(subject, newsletterContent);
-            return preview;
+            await newsletterCampaignService.createTemplate({
+                name: newTemplateName,
+                subject: newTemplateSubject,
+                content: newTemplateContent,
+                previewText: '',
+                isDefault: false
+            });
+            
+            toast.success('Template criado com sucesso!');
+            setShowTemplateDialog(false);
+            setNewTemplateName('');
+            setNewTemplateSubject('');
+            setNewTemplateContent('');
+            loadTemplates();
         } catch (error) {
-            console.error('Error generating preview:', error);
-            return '';
+            console.error('Error creating template:', error);
+            toast.error('Erro ao criar template');
+        }
+    };
+
+    const deleteTemplate = async (templateId: string) => {
+        try {
+            await newsletterCampaignService.deleteTemplate(templateId);
+            toast.success('Template excluído com sucesso!');
+            loadTemplates();
+        } catch (error) {
+            console.error('Error deleting template:', error);
+            toast.error('Erro ao excluir template');
+        }
+    };
+
+    const setAsDefault = async (templateId: string) => {
+        try {
+            // First, unset all templates as default
+            for (const template of templates) {
+                if (template.isDefault) {
+                    await newsletterCampaignService.updateTemplate(template.id, { isDefault: false });
+                }
+            }
+            
+            // Then set the new default
+            await newsletterCampaignService.updateTemplate(templateId, { isDefault: true });
+            toast.success('Template definido como padrão!');
+            loadTemplates();
+        } catch (error) {
+            console.error('Error setting default template:', error);
+            toast.error('Erro ao definir template padrão');
         }
     };
 
@@ -301,15 +353,57 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setShowTemplateDialog(true)}
+                                        className="gap-2"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Novo Template
+                                    </Button>
+                                </div>
+                                {selectedTemplate && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setAsDefault(selectedTemplate.id)}
+                                        className="gap-2"
+                                    >
+                                        <HelpCircle className="h-4 w-4" />
+                                        Definir como Padrão
+                                    </Button>
+                                )}
+                            </div>
                             {templates.map((template) => (
-                                <Button
-                                    key={template.id}
-                                    variant={selectedTemplate?.id === template.id ? "default" : "ghost"}
-                                    className="w-full justify-start"
-                                    onClick={() => applyTemplate(template)}
-                                >
-                                    {template.name}
-                                </Button>
+                                <div key={template.id} className="flex items-center justify-between p-2 border rounded-lg hover:bg-slate-50">
+                                    <div className="flex-1">
+                                        <Button
+                                            variant={selectedTemplate?.id === template.id ? "default" : "ghost"}
+                                            className="w-full justify-start"
+                                            onClick={() => applyTemplate(template)}
+                                        >
+                                            {template.name}
+                                        </Button>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {template.isDefault && (
+                                            <Badge variant="secondary" className="gap-1">
+                                                <Layout className="h-3 w-3" />
+                                                Padrão
+                                            </Badge>
+                                        )}
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => deleteTemplate(template.id)}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
                             ))}
                         </CardContent>
                     </Card>
@@ -344,18 +438,6 @@ const NewsletterEditor = ({ campaignId, onSave, onSend }: NewsletterEditorProps)
                                         onChange={(e) => setScheduledTime(e.target.value)}
                                     />
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Main Content */}
-                <div className="lg:col-span-3">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Conteúdo da Newsletter</CardTitle>
-                            <CardDescription>
-                                Preencha os campos abaixo para criar sua newsletter
                             </CardDescription>
                         </CardHeader>
                         <CardContent>

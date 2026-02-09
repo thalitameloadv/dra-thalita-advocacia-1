@@ -19,7 +19,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = (supabaseUrl && supabaseAnonKey) ? createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
-        autoRefreshToken: true,
+        autoRefreshToken: import.meta.env.PROD,
         persistSession: true,
         detectSessionInUrl: true
     }

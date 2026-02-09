@@ -513,7 +513,7 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                                                         <SelectValue placeholder="Selecione uma categoria" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {categories.map((category) => (
+                                                        {Array.isArray(categories) && categories.map((category) => (
                                                             <SelectItem key={category.id} value={category.slug}>
                                                                 {category.name}
                                                             </SelectItem>
