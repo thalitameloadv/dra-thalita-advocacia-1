@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Lock, Mail, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
@@ -19,12 +19,7 @@ const AdminLogin = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    useEffect(() => {
-        // Check if already authenticated
-        checkAuth();
-    }, []);
-
-    const checkAuth = async () => {
+    const checkAuth = useCallback(async () => {
         try {
             const isAuth = await authService.isAuthenticated();
             if (isAuth) {
@@ -33,7 +28,12 @@ const AdminLogin = () => {
         } catch (error) {
             console.error('Auth check error:', error);
         }
-    };
+    }, [navigate]);
+
+    useEffect(() => {
+        // Check if already authenticated
+        checkAuth();
+    }, [checkAuth]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -44,9 +44,10 @@ const AdminLogin = () => {
             await authService.signIn(email, password);
             toast.success('Login realizado com sucesso!');
             navigate('/admin/blog');
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Login error:', error);
-            setError(error.message || 'Email ou senha incorretos');
+            const message = error instanceof Error ? error.message : undefined;
+            setError(message || 'Email ou senha incorretos');
             toast.error('Erro ao fazer login');
         } finally {
             setLoading(false);
