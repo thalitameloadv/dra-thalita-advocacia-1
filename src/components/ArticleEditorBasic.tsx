@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
-    ArrowLeft, Save, Send, Eye, Bold, Italic, Link, List, ListOrdered, Quote, Code,
+    ArrowLeft, Save, Send, Eye,
     Plus, X, Clock, Search, BarChart3, Target, FileText, Layout, Sparkles, ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -41,8 +41,6 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
     const [previewMode, setPreviewMode] = useState(false);
     const [featuredImage, setFeaturedImage] = useState('');
     const [readingTime, setReadingTime] = useState(0);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const [lastSelection, setLastSelection] = useState<{ start: number; end: number } | null>(null);
     
     // Form state
     const [formData, setFormData] = useState({
@@ -181,61 +179,6 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
 
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-    };
-
-    const insertText = (tag: string, e?: React.MouseEvent) => {
-        if (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        
-        const textarea = textareaRef.current;
-        if (!textarea) return;
-
-        // Use stored selection if available, otherwise get current
-        const start = lastSelection?.start ?? textarea.selectionStart;
-        const end = lastSelection?.end ?? textarea.selectionEnd;
-        const selectedText = formData.content.substring(start, end);
-
-        let newText = '';
-        switch (tag) {
-            case 'bold':
-                newText = `**${selectedText || 'texto em negrito'}**`;
-                break;
-            case 'italic':
-                newText = `*${selectedText || 'texto em itálico'}*`;
-                break;
-            case 'link':
-                newText = `[${selectedText || 'texto do link'}](url)`;
-                break;
-            case 'heading':
-                newText = `\n## ${selectedText || 'título'}`;
-                break;
-            case 'list':
-                newText = `\n- ${selectedText || 'item da lista'}`;
-                break;
-            case 'ordered':
-                newText = `\n1. ${selectedText || 'item da lista'}`;
-                break;
-            case 'quote':
-                newText = `\n> ${selectedText || 'citação'}`;
-                break;
-            case 'code':
-                newText = `\`${selectedText || 'código'}\``;
-                break;
-            default:
-                newText = selectedText;
-        }
-
-        const newContent = formData.content.substring(0, start) + newText + formData.content.substring(end);
-        handleInputChange('content', newContent);
-
-        requestAnimationFrame(() => {
-            textarea.focus();
-            const newPosition = start + newText.length;
-            textarea.setSelectionRange(newPosition, newPosition);
-            setLastSelection({ start: newPosition, end: newPosition });
-        });
     };
 
     const addTag = () => {
@@ -398,81 +341,6 @@ const ArticleEditorBasic = ({ articleId, onSave, onPublish }: ArticleEditorBasic
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                         {/* Sidebar */}
                         <div className="lg:col-span-1 space-y-4">
-                            {/* Formatting Tools */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Formatação</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={(e) => insertText('bold', e)}
-                                            className="gap-1"
-                                        >
-                                            <Bold className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={(e) => insertText('italic', e)}
-                                            className="gap-1"
-                                        >
-                                            <Italic className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={(e) => insertText('heading', e)}
-                                            className="gap-1"
-                                        >
-                                            <span className="text-xs font-bold">H2</span>
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={(e) => insertText('link', e)}
-                                            className="gap-1"
-                                        >
-                                            <Link className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={(e) => insertText('list', e)}
-                                            className="gap-1"
-                                        >
-                                            <List className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={(e) => insertText('ordered', e)}
-                                            className="gap-1"
-                                        >
-                                            <ListOrdered className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={(e) => insertText('quote', e)}
-                                            className="gap-1"
-                                        >
-                                            <Quote className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={(e) => insertText('code', e)}
-                                            className="gap-1"
-                                        >
-                                            <Code className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
                             {/* SEO Score */}
                             <Card>
                                 <CardHeader className="pb-3">

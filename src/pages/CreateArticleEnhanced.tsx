@@ -215,7 +215,7 @@ const CreateArticleEnhanced = () => {
 
         try {
             setLoading(true);
-            const data = await blogService.getPostBySlug(id);
+            const data = await blogService.getPostById(id);
             if (data) {
                 setArticle({
                     ...data,

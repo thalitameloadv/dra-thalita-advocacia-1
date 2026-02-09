@@ -58,6 +58,10 @@ function isActive(editor: Editor | null, name: string, attrs?: Record<string, un
   return editor.isActive(name, attrs);
 }
 
+function looksLikeHtml(input: string) {
+  return /<\s*\/?\s*[a-z][\s\S]*>/i.test(input);
+}
+
 const RichTextEditor = ({
   value,
   onChange,
@@ -74,14 +78,16 @@ const RichTextEditor = ({
     const html = value?.html;
     const md = value?.markdown;
 
+    const normalizedHtml = html && html.trim() ? (looksLikeHtml(html) ? html : markdownToHtml(html)) : '';
+
     if (initialContentMode === 'html') {
-      if (html && html.trim()) return html;
+      if (normalizedHtml) return normalizedHtml;
       if (md && md.trim()) return markdownToHtml(md);
       return '';
     }
 
     if (md && md.trim()) return markdownToHtml(md);
-    if (html && html.trim()) return html;
+    if (normalizedHtml) return normalizedHtml;
     return '';
   }, [initialContentMode, value?.html, value?.markdown]);
 
