@@ -7,8 +7,11 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Development fallback - permitir execução sem Supabase configurado
 if (!supabaseUrl || !supabaseAnonKey) {
-    if (import.meta.env.DEV && import.meta.env.VITE_DEBUG === 'true') {
+    if (import.meta.env.DEV) {
         console.warn('⚠️ Development mode: Supabase not configured. Some features will be limited.');
+        console.log('📋 Required environment variables:');
+        console.log('   VITE_SUPABASE_URL:', supabaseUrl ? '✓' : '✗ Missing');
+        console.log('   VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✓' : '✗ Missing');
     } else {
         throw new Error('Missing Supabase environment variables. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
     }
