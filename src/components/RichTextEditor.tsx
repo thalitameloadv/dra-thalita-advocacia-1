@@ -5,10 +5,6 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
-import { Table } from '@tiptap/extension-table';
-import TableRow from '@tiptap/extension-table-row';
-import TableHeader from '@tiptap/extension-table-header';
-import TableCell from '@tiptap/extension-table-cell';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import {
@@ -29,7 +25,6 @@ import {
   AlignCenter,
   AlignRight,
   AlignJustify,
-  Table as TableIcon,
   CheckSquare,
   Heading1,
   Heading2,
@@ -58,7 +53,7 @@ export interface RichTextEditorProps {
   initialContentMode?: RichTextEditorMode;
 }
 
-function isActive(editor: Editor | null, name: string, attrs?: Record<string, any>) {
+function isActive(editor: Editor | null, name: string, attrs?: Record<string, unknown>) {
   if (!editor) return false;
   return editor.isActive(name, attrs);
 }
@@ -97,6 +92,8 @@ const RichTextEditor = ({
         heading: {
           levels: [1, 2, 3, 4],
         },
+        link: false,
+        underline: false,
       }),
       Underline,
       Link.configure({
@@ -119,12 +116,6 @@ const RichTextEditor = ({
         types: ['heading', 'paragraph'],
         alignments: ['left', 'center', 'right', 'justify'],
       }),
-      Table.configure({
-        resizable: true,
-      }),
-      TableRow,
-      TableHeader,
-      TableCell,
       TaskList,
       TaskItem.configure({
         nested: true,
@@ -304,12 +295,6 @@ const RichTextEditor = ({
         </Button>
         <Button type="button" variant={editor.getAttributes('textAlign').textAlign === 'justify' ? 'default' : 'outline'} size="sm" onClick={() => editor.chain().focus().setTextAlign('justify').run()} disabled={disabled}>
           <AlignJustify className="h-4 w-4" />
-        </Button>
-
-        <div className="mx-1 h-6 w-px bg-slate-200" />
-
-        <Button type="button" variant="outline" size="sm" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} disabled={disabled}>
-          <TableIcon className="h-4 w-4" />
         </Button>
 
         <Button type="button" variant="outline" size="sm" onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()} disabled={disabled}>
