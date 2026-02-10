@@ -5,7 +5,7 @@ import { ArrowLeft, Save, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import NewsletterEditor from '@/components/NewsletterEditor';
+import NewsletterEditorEnhanced from '@/components/NewsletterEditorEnhanced';
 import { toast } from 'sonner';
 
 const CreateNewsletter = () => {
@@ -66,7 +66,7 @@ const CreateNewsletter = () => {
                 </div>
 
                 {/* Editor */}
-                <NewsletterEditor
+                <NewsletterEditorEnhanced
                     campaignId={id}
                     onSave={handleSave}
                     onSend={handleSend}
