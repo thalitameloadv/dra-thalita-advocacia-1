@@ -59,6 +59,7 @@ import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import RichTextEditor from '@/components/RichTextEditor';
 import { buildEmailSafeNewsletterHtml } from '@/lib/newsletterEmail';
 import { markdownToHtml } from '@/lib/richText';
+import { newsletterEmailTemplates, EmailTemplate } from '@/templates/newsletterTemplates';
 
 const newsletterSchema = z.object({
     subject: z.string().min(1, 'O assunto é obrigatório'),
@@ -92,6 +93,8 @@ const NewsletterEditorEnhanced = ({ campaignId, onSave, onSend }: NewsletterEdit
     const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
     const [testEmail, setTestEmail] = useState('');
     const [sendingTest, setSendingTest] = useState(false);
+    const [selectedEmailTemplate, setSelectedEmailTemplate] = useState<EmailTemplate | null>(null);
+    const [showEmailTemplateDialog, setShowEmailTemplateDialog] = useState(false);
 
     const {
         register,
@@ -415,6 +418,42 @@ const NewsletterEditorEnhanced = ({ campaignId, onSave, onSend }: NewsletterEdit
                         </CardContent>
                     </Card>
 
+                    {/* Email Design Templates */}
+                    <Card className="border-slate-200">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-base flex items-center gap-2">
+                                <Sparkles className="h-4 w-4" />
+                                Design de Email
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowEmailTemplateDialog(true)}
+                                    className="gap-2 w-full"
+                                >
+                                    <Layout className="h-4 w-4" />
+                                    {selectedEmailTemplate ? selectedEmailTemplate.name : 'Escolher Modelo'}
+                                </Button>
+                            </div>
+                            {selectedEmailTemplate && (
+                                <div className="p-3 bg-slate-50 rounded-lg">
+                                    <p className="text-xs text-slate-600 mb-2">{selectedEmailTemplate.description}</p>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setSelectedEmailTemplate(null)}
+                                        className="text-xs w-full"
+                                    >
+                                        Remover modelo
+                                    </Button>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
                     {/* Test Email */}
                     <Card className="border-slate-200">
                         <CardHeader className="pb-3">
@@ -711,6 +750,44 @@ const NewsletterEditorEnhanced = ({ campaignId, onSave, onSend }: NewsletterEdit
                             </Button>
                         </div>
                     </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Email Design Template Dialog */}
+            <Dialog open={showEmailTemplateDialog} onOpenChange={setShowEmailTemplateDialog}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Escolher Modelo de Email</DialogTitle>
+                        <DialogDescription>
+                            Selecione um dos 10 modelos profissionais com a identidade visual do escritório
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        {newsletterEmailTemplates.map((template) => (
+                            <div
+                                key={template.id}
+                                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                    selectedEmailTemplate?.id === template.id
+                                        ? 'border-[#D4A838] bg-[#D4A838]/10'
+                                        : 'border-slate-200 hover:border-[#D4A838]/50'
+                                }`}
+                                onClick={() => {
+                                    setSelectedEmailTemplate(template);
+                                    setShowEmailTemplateDialog(false);
+                                    toast.success(`Modelo "${template.name}" selecionado!`);
+                                }}
+                            >
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Layout className="h-5 w-5 text-[#D4A838]" />
+                                    <h3 className="font-semibold text-slate-900">{template.name}</h3>
+                                </div>
+                                <p className="text-sm text-slate-600 mb-3">{template.description}</p>
+                                <div className="flex items-center gap-2 text-xs text-slate-500">
+                                    <span className="px-2 py-1 bg-slate-100 rounded">ID: {template.id}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>
